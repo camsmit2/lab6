@@ -1,4 +1,4 @@
-package com.example.pokeapi
+package com.example.lab6
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +19,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         recycler = findViewById(R.id.recyclerPokemon)
-        adapter = PokemonAdapter(mutableListOf())
+        // 👇 Give Kotlin an explicit type so it infers correctly
+        adapter = PokemonAdapter(mutableListOf<Pokemon>())
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
 
@@ -30,22 +31,18 @@ class MainActivity : AppCompatActivity() {
         val url = "https://pokeapi.co/api/v2/pokemon?limit=151"
 
         client.get(url, object : JsonHttpResponseHandler() {
-            override fun onSuccess(statusCode: Int, headers: Headers, json: JsonHttpResponseHandler.JSON) {
+            override fun onSuccess(statusCode: Int, headers: Headers, json: JSON) {
                 val results = json.jsonObject.getJSONArray("results")
                 val list = mutableListOf<Pokemon>()
 
                 for (i in 0 until results.length()) {
                     val obj = results.getJSONObject(i)
                     val name = obj.getString("name")
-                    val urlStr = obj.getString("url") // ends with /pokemon/{id}/
-
-                    // Extract ID from URL safely
+                    val urlStr = obj.getString("url")
                     val trimmed = urlStr.trimEnd('/')
                     val id = trimmed.substringAfterLast('/').toIntOrNull() ?: continue
 
-                    // Small sprite (fast to load). You can swap to official-artwork if you want.
                     val imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png"
-
                     list.add(Pokemon(id = id, name = name, imageUrl = imageUrl))
                 }
 
@@ -53,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(statusCode: Int, headers: Headers?, response: String?, throwable: Throwable?) {
-                // Optional: show a Toast or empty state
+                // TODO: Show a Toast or log
             }
         })
     }
